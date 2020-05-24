@@ -97,6 +97,41 @@ app.delete(`/api/persons/:id`, (req, res) => {
     }
 })
 
+app.put(`/api/persons/:id`, (req, res) => {
+
+    let person = req.body
+
+    if (!person.hasOwnProperty("name")) {
+        return res.status(400).json({
+            error: 'name property missing'
+        })
+    }
+
+    if (!person.hasOwnProperty("number")) {
+        return res.status(400).json({
+            "error": "number property missing"
+        })
+    }
+
+    if (!person.hasOwnProperty("id")) {
+        return res.status(400).json({
+            error: 'name property missing'
+        })
+    }
+
+    const person = persons.find(person => person.id === id)
+
+    if (person) {
+        let newpersons=[...persons]
+        let index=persons.findIndex(person => person.id === id)
+        newpersons[index]=person
+        res.status(200).send(person)
+    }
+    else {
+        res.status(204).end()
+    }
+})
+
 app.post('/api/persons', (req, res) => {
     let person = req.body
 
