@@ -119,6 +119,7 @@ app.put(`/api/persons/:id`, (req, res) => {
         let newpersons=[...persons]
         let index=persons.findIndex(person => person.id === id)
         newpersons[index]=incommingperson
+        newpersons[index][id]=person.id
         persons=[...newpersons]
         res.status(200).send(incommingperson)
     }
