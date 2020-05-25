@@ -48,7 +48,9 @@ morgan(function (tokens, req, res) {
   })
 
 morgan.token("body",(req, res)=>{
-    return `{"name":"${req.body.name}","number": "${req.body.number}"}`
+    if (req.method==="POST"){
+        return `{"name":"${req.body.name}","number": "${req.body.number}"}`
+    }
 })
 
 //function
