@@ -99,7 +99,7 @@ app.delete(`/api/persons/:id`, (req, res) => {
 
 app.put(`/api/persons/:id`, (req, res) => {
     const id = Number(req.params.id)
-    const incommingperson = req.body
+    const incommingperson ={...req.body}
 
     if (!incommingperson.hasOwnProperty("name")) {
         return res.status(400).json({
@@ -118,8 +118,7 @@ app.put(`/api/persons/:id`, (req, res) => {
     if (person) {
         let newpersons=[...persons]
         let index=persons.findIndex(person => person.id === id)
-        newpersons[index]=incommingperson
-        newpersons[index][id]=person.id
+        newpersons[index]={...incommingperson,id:id}
         persons=[...newpersons]
         res.status(200).send(incommingperson)
     }
