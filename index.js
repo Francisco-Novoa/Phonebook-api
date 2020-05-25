@@ -29,7 +29,7 @@ morgan(function (tokens, req, res) {
 })
 
 morgan.token("body", (req, res) => {
-    if (req.method === "POST"||req.method === "PUT") {
+    if (req.method === "POST" || req.method === "PUT") {
         return `{"name":"${req.body.name}","number": "${req.body.number}"}`
     }
 })
@@ -43,103 +43,82 @@ app.get('/', (req, res) => {
 })
 
 app.get('/api/persons', (req, res) => {
-   Person.find({})
-    .then(persons => {
-        res.json(persons)
-    })
-    .catch(error=>{
-        console.log(error)
-    })
+    Person.find({})
+        .then(persons => res.json(persons))
+        .catch(error => console.error(error))
 })
 
 app.get(`/api/info`, (req, res) => {
     let now = new Date()
     Person.find({})
-    .then(persons => {
-        res.send(`<p>Phonebook has info for ${persons.length} people</p><p>${now.toString()}<p>`)
-    })
-    .catch(error=>{
-        console.log(error)
-    })
+        .then(persons => {
+            res.send(`<p>Phonebook has info for ${persons.length} people</p><p>${now.toString()}<p>`)
+        })
+        .catch(error => {
+            console.log(error)
+        })
 })
 
 app.get(`/api/persons/:id`, (req, res, next) => {
     Person.findById(req.params.id)
-    .then(person=>{
-        if(person){
-            res.json(person)
-        }
-        else{
-        response.status(404).end()
-        }
-    })
-    .catch(error=>next(error))
+        .then(person => {
+            if (person) {
+                res.json(person)
+            }
+            else {
+                response.status(404).end()
+            }
+        })
+        .catch(error => next(error))
 })
 
 app.delete(`/api/persons/:id`, (req, res) => {
     Person.findByIdAndRemove(req.params.id)
-    .then(result => {
-      res.status(204).end()
-    })
-    .catch(error => next(error))
+        .then(result => res.status(204).end())
+        .catch(error => next(error))
 })
 
 app.put(`/api/persons/:id`, (req, res) => {
-    Person.findByIdAndUpdate(req.params.id,req.body)
-    .then(result => {
-      res.status(200).send(result)
-    })
-    .catch(error => console.log(error))
+    Person.findByIdAndUpdate(req.params.id, req.body)
+        .then(result => res.status(200).send(result))
+        .catch(error => console.log(error))
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     let person = req.body
-
-    if (!person.hasOwnProperty("name")) {
-        return res.status(400).json({
-            error: 'name property missing'
-        })
-    }
-
-    if (!person.hasOwnProperty("number")) {
-        return res.status(400).json({
-            "error": "number property missing"
-        })
-    }
 
     const newperson = new Person({
         name: person.name,
         number: person.number,
-      })
+    })
 
-      newperson.save().then(result => {
-        console.log(`added ${result.name} number ${result.number} to phonebook`)
-        return res.status(200).json(newperson)
-      })
-      .catch(error=>{
-          console.log(error)
-      })
-      
+    newperson
+        .save()
+        .then(personSaved => personSaved.toJSON())
+        .then(savedAndFormatedPerson => res.json(savedAndFormatedPerson))
+        .catch(error => next(error))
 })
 
 
 //handler of 404s
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
-  }
+}
 app.use(unknownEndpoint)
 
 //handler of errors
 const errorHandler = (error, request, response, next) => {
     console.error(error.message)
-  
+
     if (error.name === 'CastError') {
-      return response.status(400).send({ error: 'malformatted id' })
-    } 
-  
+        return response.status(400).send({ error: 'malformatted id' })
+    }
+    if (error.name === "ValidationError") {
+        return response.status(400).send({ message: error.message })
+    }
     next(error)
-  }
-  
+}
+
 app.use(errorHandler)
 
 const PORT = process.env.PORT
